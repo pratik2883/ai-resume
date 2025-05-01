@@ -3,8 +3,6 @@ import MainLayout from "@/layouts/main-layout";
 import HeroSection from "@/components/landing/hero-section";
 import AiPromptDemo from "@/components/landing/ai-prompt-demo";
 import FeaturesSection from "@/components/landing/features-section";
-import TemplatesSection from "@/components/landing/templates-section";
-import TestimonialsSection from "@/components/landing/testimonials-section";
 import CtaSection from "@/components/landing/cta-section";
 
 export default function LandingPage() {
@@ -18,8 +16,6 @@ export default function LandingPage() {
       <HeroSection />
       <AiPromptDemo />
       <FeaturesSection />
-      <TemplatesSection />
-      <TestimonialsSection />
       <CtaSection />
     </MainLayout>
   );
