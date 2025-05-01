@@ -23,6 +23,21 @@ export async function generatePDF(
       }
     });
 
+    // Register the 'each' helper explicitly
+    Handlebars.registerHelper('each', function(context, options) {
+      let ret = "";
+      
+      if (context && context.length > 0) {
+        for (let i = 0; i < context.length; i++) {
+          ret = ret + options.fn(context[i]);
+        }
+      } else {
+        ret = options.inverse(this);
+      }
+      
+      return ret;
+    });
+
     // Compile the template
     const compiledTemplate = Handlebars.compile(template.htmlTemplate);
     
@@ -32,17 +47,58 @@ export async function generatePDF(
     // Create a temporary div to render the HTML
     const container = document.createElement('div');
     container.innerHTML = html;
-    container.style.visibility = 'hidden';
+    container.style.position = 'absolute';
+    container.style.left = '-9999px';
+    container.style.top = '0';
+    container.style.width = '794px'; // A4 width in pixels at 96 DPI
+    container.style.height = 'auto';
+    container.style.backgroundColor = '#ffffff';
+    container.style.color = '#000000';
+    
+    // Add necessary styles for proper rendering
+    const style = document.createElement('style');
+    style.textContent = `
+      * {
+        -webkit-print-color-adjust: exact !important;
+        color-adjust: exact !important;
+        print-color-adjust: exact !important;
+      }
+      body {
+        margin: 0;
+        padding: 0;
+        font-family: Arial, sans-serif;
+      }
+    `;
+    
+    container.appendChild(style);
     document.body.appendChild(container);
 
-    // Set up html2pdf options
+    // Set up html2pdf options with improved settings
     const options = {
       margin: 10,
       filename: `${resumeName || 'Resume'}.pdf`,
-      image: { type: 'jpeg', quality: 0.98 },
-      html2canvas: { scale: 2, useCORS: true, logging: false },
-      jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+      image: { type: 'jpeg', quality: 1 },
+      html2canvas: { 
+        scale: 2, 
+        useCORS: true, 
+        logging: true,
+        backgroundColor: '#ffffff',
+        letterRendering: true,
+        allowTaint: true,
+        foreignObjectRendering: true
+      },
+      jsPDF: { 
+        unit: 'mm', 
+        format: 'a4', 
+        orientation: 'portrait',
+        compress: true,
+        precision: 16,
+        putOnlyUsedFonts: true
+      }
     };
+
+    console.log('Generating PDF with template:', template.name);
+    console.log('Container HTML:', container.innerHTML.substring(0, 200) + '...');
 
     // Generate PDF
     try {
@@ -50,6 +106,7 @@ export async function generatePDF(
       document.body.removeChild(container);
       return pdf;
     } catch (error) {
+      console.error('PDF generation error details:', error);
       document.body.removeChild(container);
       throw error;
     }
@@ -79,6 +136,21 @@ export async function generatePreviewImage(
       }
     });
 
+    // Register the 'each' helper explicitly
+    Handlebars.registerHelper('each', function(context, options) {
+      let ret = "";
+      
+      if (context && context.length > 0) {
+        for (let i = 0; i < context.length; i++) {
+          ret = ret + options.fn(context[i]);
+        }
+      } else {
+        ret = options.inverse(this);
+      }
+      
+      return ret;
+    });
+
     // Compile the template
     const compiledTemplate = Handlebars.compile(template.htmlTemplate);
     
@@ -88,7 +160,30 @@ export async function generatePreviewImage(
     // Create a temporary div to render the HTML
     const container = document.createElement('div');
     container.innerHTML = html;
-    container.style.visibility = 'hidden';
+    container.style.position = 'absolute';
+    container.style.left = '-9999px';
+    container.style.top = '0';
+    container.style.width = '794px'; // A4 width in pixels at 96 DPI
+    container.style.height = 'auto';
+    container.style.backgroundColor = '#ffffff';
+    container.style.color = '#000000';
+    
+    // Add necessary styles for proper rendering
+    const style = document.createElement('style');
+    style.textContent = `
+      * {
+        -webkit-print-color-adjust: exact !important;
+        color-adjust: exact !important;
+        print-color-adjust: exact !important;
+      }
+      body {
+        margin: 0;
+        padding: 0;
+        font-family: Arial, sans-serif;
+      }
+    `;
+    
+    container.appendChild(style);
     document.body.appendChild(container);
 
     // Use html2canvas to create an image
@@ -97,12 +192,16 @@ export async function generatePreviewImage(
         scale: 1, 
         useCORS: true,
         logging: false,
+        backgroundColor: '#ffffff',
+        letterRendering: true,
+        allowTaint: true,
         width: 800,
         height: 1132 // A4 ratio
       });
       document.body.removeChild(container);
-      return canvas.toDataURL('image/jpeg', 0.7);
+      return canvas.toDataURL('image/jpeg', 0.9);
     } catch (error) {
+      console.error('Preview generation error details:', error);
       document.body.removeChild(container);
       throw error;
     }
