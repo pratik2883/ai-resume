@@ -48,11 +48,9 @@ export default function Navbar() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-16">
           <div className="flex items-center">
-            <Link href="/">
-              <a className="flex-shrink-0 flex items-center">
+            <Link href="/" className="flex-shrink-0 flex items-center">
                 <FileText className="h-8 w-8 text-primary" />
                 <span className="ml-2 text-xl font-bold">AI Resume Builder</span>
-              </a>
             </Link>
           </div>
           
@@ -83,16 +81,18 @@ export default function Navbar() {
               </>
             ) : (
               <>
-                <Link href="/dashboard">
-                  <a className={`px-3 py-2 rounded-md text-sm font-medium ${location === '/dashboard' ? 'text-primary' : 'text-gray-700 hover:text-primary'}`}>
-                    Dashboard
-                  </a>
+                <Link 
+                  href="/dashboard"
+                  className={`px-3 py-2 rounded-md text-sm font-medium ${location === '/dashboard' ? 'text-primary' : 'text-gray-700 hover:text-primary'}`}
+                >
+                  Dashboard
                 </Link>
                 {user?.isAdmin && (
-                  <Link href="/admin">
-                    <a className={`px-3 py-2 rounded-md text-sm font-medium ${location.startsWith('/admin') ? 'text-primary' : 'text-gray-700 hover:text-primary'}`}>
-                      Admin
-                    </a>
+                  <Link 
+                    href="/admin"
+                    className={`px-3 py-2 rounded-md text-sm font-medium ${location.startsWith('/admin') ? 'text-primary' : 'text-gray-700 hover:text-primary'}`}
+                  >
+                    Admin
                   </Link>
                 )}
                 
@@ -108,40 +108,32 @@ export default function Navbar() {
                         {user.name}
                       </DropdownMenuLabel>
                       <DropdownMenuSeparator />
-                      <DropdownMenuItem asChild>
-                        <Link href="/profile">
-                          <a className="flex items-center cursor-pointer w-full">
-                            <User className="mr-2 h-4 w-4" />
-                            <span>Profile</span>
-                          </a>
-                        </Link>
-                      </DropdownMenuItem>
+                      <Link href="/profile">
+                        <DropdownMenuItem className="flex items-center cursor-pointer w-full">
+                          <User className="mr-2 h-4 w-4" />
+                          <span>Profile</span>
+                        </DropdownMenuItem>
+                      </Link>
                       {user.isAdmin && (
                         <>
-                          <DropdownMenuItem asChild>
-                            <Link href="/admin/users">
-                              <a className="flex items-center cursor-pointer w-full">
-                                <Users className="mr-2 h-4 w-4" />
-                                <span>Manage Users</span>
-                              </a>
-                            </Link>
-                          </DropdownMenuItem>
-                          <DropdownMenuItem asChild>
-                            <Link href="/admin/resumes">
-                              <a className="flex items-center cursor-pointer w-full">
-                                <FileText className="mr-2 h-4 w-4" />
-                                <span>Manage Resumes</span>
-                              </a>
-                            </Link>
-                          </DropdownMenuItem>
-                          <DropdownMenuItem asChild>
-                            <Link href="/admin/api-keys">
-                              <a className="flex items-center cursor-pointer w-full">
-                                <Key className="mr-2 h-4 w-4" />
-                                <span>API Keys</span>
-                              </a>
-                            </Link>
-                          </DropdownMenuItem>
+                          <Link href="/admin/users">
+                            <DropdownMenuItem className="flex items-center cursor-pointer w-full">
+                              <Users className="mr-2 h-4 w-4" />
+                              <span>Manage Users</span>
+                            </DropdownMenuItem>
+                          </Link>
+                          <Link href="/admin/resumes">
+                            <DropdownMenuItem className="flex items-center cursor-pointer w-full">
+                              <FileText className="mr-2 h-4 w-4" />
+                              <span>Manage Resumes</span>
+                            </DropdownMenuItem>
+                          </Link>
+                          <Link href="/admin/api-keys">
+                            <DropdownMenuItem className="flex items-center cursor-pointer w-full">
+                              <Key className="mr-2 h-4 w-4" />
+                              <span>API Keys</span>
+                            </DropdownMenuItem>
+                          </Link>
                         </>
                       )}
                       <DropdownMenuSeparator />
@@ -191,88 +183,79 @@ export default function Navbar() {
                   Templates
                 </a>
                 {user ? (
-                  <Link href="/dashboard">
-                    <a 
-                      className="block px-3 py-2 rounded-md text-base font-medium text-white bg-primary hover:bg-blue-600 text-center"
-                      onClick={() => setMobileMenuOpen(false)}
-                    >
-                      Dashboard
-                    </a>
+                  <Link 
+                    href="/dashboard"
+                    className="block px-3 py-2 rounded-md text-base font-medium text-white bg-primary hover:bg-blue-600 text-center"
+                    onClick={() => setMobileMenuOpen(false)}
+                  >
+                    Dashboard
                   </Link>
                 ) : (
                   <>
-                    <Link href="/auth">
-                      <a 
-                        className="block px-3 py-2 rounded-md text-base font-medium text-primary bg-white border border-primary hover:bg-blue-50 text-center"
-                        onClick={() => setMobileMenuOpen(false)}
-                      >
-                        Login
-                      </a>
+                    <Link 
+                      href="/auth"
+                      className="block px-3 py-2 rounded-md text-base font-medium text-primary bg-white border border-primary hover:bg-blue-50 text-center"
+                      onClick={() => setMobileMenuOpen(false)}
+                    >
+                      Login
                     </Link>
-                    <Link href="/auth">
-                      <a 
-                        className="block px-3 py-2 rounded-md text-base font-medium text-white bg-primary hover:bg-blue-600 text-center mt-2"
-                        onClick={() => setMobileMenuOpen(false)}
-                      >
-                        Register
-                      </a>
+                    <Link 
+                      href="/auth"
+                      className="block px-3 py-2 rounded-md text-base font-medium text-white bg-primary hover:bg-blue-600 text-center mt-2"
+                      onClick={() => setMobileMenuOpen(false)}
+                    >
+                      Register
                     </Link>
                   </>
                 )}
               </>
             ) : (
               <>
-                <Link href="/dashboard">
-                  <a 
-                    className={`block px-3 py-2 rounded-md text-base font-medium ${location === '/dashboard' ? 'text-primary' : 'text-gray-700 hover:text-primary hover:bg-gray-50'}`}
-                    onClick={() => setMobileMenuOpen(false)}
-                  >
-                    Dashboard
-                  </a>
+                <Link 
+                  href="/dashboard"
+                  className={`block px-3 py-2 rounded-md text-base font-medium ${location === '/dashboard' ? 'text-primary' : 'text-gray-700 hover:text-primary hover:bg-gray-50'}`}
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  Dashboard
                 </Link>
                 
-                <Link href="/profile">
-                  <a 
-                    className={`block px-3 py-2 rounded-md text-base font-medium ${location === '/profile' ? 'text-primary' : 'text-gray-700 hover:text-primary hover:bg-gray-50'}`}
-                    onClick={() => setMobileMenuOpen(false)}
-                  >
-                    Profile
-                  </a>
+                <Link 
+                  href="/profile"
+                  className={`block px-3 py-2 rounded-md text-base font-medium ${location === '/profile' ? 'text-primary' : 'text-gray-700 hover:text-primary hover:bg-gray-50'}`}
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  Profile
                 </Link>
                 
                 {user?.isAdmin && (
                   <>
-                    <Link href="/admin">
-                      <a 
-                        className={`block px-3 py-2 rounded-md text-base font-medium ${location === '/admin' ? 'text-primary' : 'text-gray-700 hover:text-primary hover:bg-gray-50'}`}
-                        onClick={() => setMobileMenuOpen(false)}
-                      >
-                        Admin Dashboard
-                      </a>
+                    <Link 
+                      href="/admin"
+                      className={`block px-3 py-2 rounded-md text-base font-medium ${location === '/admin' ? 'text-primary' : 'text-gray-700 hover:text-primary hover:bg-gray-50'}`}
+                      onClick={() => setMobileMenuOpen(false)}
+                    >
+                      Admin Dashboard
                     </Link>
-                    <Link href="/admin/users">
-                      <a 
-                        className={`block px-3 py-2 rounded-md text-base font-medium ${location === '/admin/users' ? 'text-primary' : 'text-gray-700 hover:text-primary hover:bg-gray-50'}`}
-                        onClick={() => setMobileMenuOpen(false)}
-                      >
-                        Manage Users
-                      </a>
+                    <Link 
+                      href="/admin/users"
+                      className={`block px-3 py-2 rounded-md text-base font-medium ${location === '/admin/users' ? 'text-primary' : 'text-gray-700 hover:text-primary hover:bg-gray-50'}`}
+                      onClick={() => setMobileMenuOpen(false)}
+                    >
+                      Manage Users
                     </Link>
-                    <Link href="/admin/resumes">
-                      <a 
-                        className={`block px-3 py-2 rounded-md text-base font-medium ${location === '/admin/resumes' ? 'text-primary' : 'text-gray-700 hover:text-primary hover:bg-gray-50'}`}
-                        onClick={() => setMobileMenuOpen(false)}
-                      >
-                        Manage Resumes
-                      </a>
+                    <Link 
+                      href="/admin/resumes"
+                      className={`block px-3 py-2 rounded-md text-base font-medium ${location === '/admin/resumes' ? 'text-primary' : 'text-gray-700 hover:text-primary hover:bg-gray-50'}`}
+                      onClick={() => setMobileMenuOpen(false)}
+                    >
+                      Manage Resumes
                     </Link>
-                    <Link href="/admin/api-keys">
-                      <a 
-                        className={`block px-3 py-2 rounded-md text-base font-medium ${location === '/admin/api-keys' ? 'text-primary' : 'text-gray-700 hover:text-primary hover:bg-gray-50'}`}
-                        onClick={() => setMobileMenuOpen(false)}
-                      >
-                        API Keys
-                      </a>
+                    <Link 
+                      href="/admin/api-keys"
+                      className={`block px-3 py-2 rounded-md text-base font-medium ${location === '/admin/api-keys' ? 'text-primary' : 'text-gray-700 hover:text-primary hover:bg-gray-50'}`}
+                      onClick={() => setMobileMenuOpen(false)}
+                    >
+                      API Keys
                     </Link>
                   </>
                 )}
