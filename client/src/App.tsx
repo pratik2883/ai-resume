@@ -7,6 +7,7 @@ import LandingPage from "@/pages/landing-page";
 import AuthPage from "@/pages/auth-page";
 import DashboardPage from "@/pages/dashboard-page";
 import ProfilePage from "@/pages/profile-page";
+import HelpCenterPage from "@/pages/help-center-page";
 import AdminDashboard from "@/pages/admin/admin-dashboard";
 import ManageUsers from "@/pages/admin/manage-users";
 import ManageResumes from "@/pages/admin/manage-resumes";
@@ -19,6 +20,7 @@ function Router() {
     <Switch>
       <Route path="/" component={LandingPage} />
       <Route path="/auth" component={AuthPage} />
+      <Route path="/help" component={HelpCenterPage} />
       <ProtectedRoute path="/dashboard" component={DashboardPage} />
       <ProtectedRoute path="/profile" component={ProfilePage} />
       <ProtectedRoute path="/admin" component={AdminDashboard} adminOnly />
