@@ -3,12 +3,16 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Loader2, Zap } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/hooks/use-auth";
+import { useLocation } from "wouter";
 
 export default function AiPromptDemo() {
   const [prompt, setPrompt] = useState("");
   const [isGenerating, setIsGenerating] = useState(false);
   const [generatedResume, setGeneratedResume] = useState<any | null>(null);
   const { toast } = useToast();
+  const { user } = useAuth();
+  const [, setLocation] = useLocation();
 
   const handleGenerate = async () => {
     if (!prompt.trim()) {
@@ -17,6 +21,16 @@ export default function AiPromptDemo() {
         description: "Please enter details about your background to generate a resume.",
         variant: "destructive",
       });
+      return;
+    }
+
+    if (!user) {
+      toast({
+        title: "Authentication Required",
+        description: "Please create an account or login first to use the AI resume generator.",
+        variant: "destructive",
+      });
+      setLocation("/auth");
       return;
     }
 
@@ -35,10 +49,24 @@ export default function AiPromptDemo() {
       });
 
       if (!response.ok) {
-        throw new Error("Failed to generate resume content");
+        if (response.status === 401) {
+          // User is not authenticated or session expired
+          throw new Error("Please log in to generate resume content");
+        } else {
+          throw new Error("Failed to generate resume content");
+        }
       }
 
       const data = await response.json();
+      
+      // If user is logged in, redirect to dashboard with the prompt
+      if (user) {
+        // Store the prompt in session storage to use in the dashboard
+        sessionStorage.setItem('resumePrompt', prompt);
+        setLocation('/dashboard');
+        return;
+      }
+
       setGeneratedResume(data.content);
 
       // Scroll to result

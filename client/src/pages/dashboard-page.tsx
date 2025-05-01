@@ -41,6 +41,17 @@ export default function DashboardPage() {
   const [resumeContent, setResumeContent] = useState<ResumeContent>(defaultResumeContent);
   const [resumeName, setResumeName] = useState<string>("My Resume");
   const [currentResumeId, setCurrentResumeId] = useState<number | null>(null);
+  const [savedPrompt, setSavedPrompt] = useState<string | null>(null);
+
+  // Check for saved prompt from landing page on component mount
+  useState(() => {
+    const storedPrompt = sessionStorage.getItem('resumePrompt');
+    if (storedPrompt) {
+      setSavedPrompt(storedPrompt);
+      // Clear it after retrieval so it doesn't persist on page refresh
+      sessionStorage.removeItem('resumePrompt');
+    }
+  });
 
   // Fetch templates
   const { data: templates, isLoading: templatesLoading } = useQuery({
