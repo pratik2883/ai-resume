@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useState, useEffect } from "react";
+import { useQuery, useMutation } from "@tanstack/react-query";
 import { Helmet } from "react-helmet";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import MainLayout from "@/layouts/main-layout";
@@ -11,6 +11,7 @@ import { ResumeContent, EducationItem, ExperienceItem, SkillItem, ProjectItem } 
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/use-auth";
 import { Loader2 } from "lucide-react";
+import { apiRequest } from "@/lib/queryClient";
 
 // Default empty resume
 const defaultResumeContent: ResumeContent = {
@@ -41,17 +42,50 @@ export default function DashboardPage() {
   const [resumeContent, setResumeContent] = useState<ResumeContent>(defaultResumeContent);
   const [resumeName, setResumeName] = useState<string>("My Resume");
   const [currentResumeId, setCurrentResumeId] = useState<number | null>(null);
-  const [savedPrompt, setSavedPrompt] = useState<string | null>(null);
 
-  // Check for saved prompt from landing page on component mount
-  useState(() => {
+  // AI generation mutation
+  const generateWithAiMutation = useMutation({
+    mutationFn: async ({ prompt, type }: { prompt: string; type: string }) => {
+      const res = await apiRequest("POST", "/api/ai/generate", { prompt, type });
+      return await res.json();
+    },
+    onSuccess: (data) => {
+      if (data && data.content) {
+        setResumeContent(data.content);
+        toast({
+          title: "Resume generated",
+          description: "AI-generated resume content has been loaded from your prompt.",
+        });
+      }
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Generation failed",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Check for saved prompt from landing page on component mount and generate content
+  useEffect(() => {
     const storedPrompt = sessionStorage.getItem('resumePrompt');
     if (storedPrompt) {
-      setSavedPrompt(storedPrompt);
       // Clear it after retrieval so it doesn't persist on page refresh
       sessionStorage.removeItem('resumePrompt');
+      
+      // Auto-generate resume with the saved prompt
+      toast({
+        title: "Generating Resume",
+        description: "Creating a resume based on the information you provided.",
+      });
+      
+      generateWithAiMutation.mutate({
+        prompt: storedPrompt,
+        type: "complete"
+      });
     }
-  });
+  }, [toast, generateWithAiMutation]);
 
   // Fetch templates
   const { data: templates, isLoading: templatesLoading } = useQuery({
