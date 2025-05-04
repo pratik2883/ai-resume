@@ -1,12 +1,20 @@
-import { db } from "@db";
-import { users, resumes, resumeTemplates, apiKeys } from "@shared/schema";
-import { eq, and, desc } from "drizzle-orm";
-import session from "express-session";
-import connectPg from "connect-pg-simple";
-import { pool } from "@db";
+import mysql from "mysql2/promise";
+import * as session from "express-session";
+import connectMysql from "express-mysql-session";
 import { InsertUser, User, InsertResume, Resume, InsertResumeTemplate, ResumeTemplate, InsertApiKey, ApiKey } from "@shared/schema";
+import { JsonValue } from "type-fest"; // Install type-fest if not already installed
+type Json = JsonValue;
 
-const PostgresSessionStore = connectPg(session);
+// MySQL connection pool
+const pool = mysql.createPool({
+  host: "localhost",
+  user: "root", // Default XAMPP MySQL user
+  password: "", // No password by default
+  database: "ai-resume",
+  port: 3306,
+});
+
+const MySQLSessionStore = connectMysql(session);
 
 export interface IStorage {
   // User operations
@@ -40,174 +48,133 @@ export interface IStorage {
   deleteApiKey(id: number): Promise<void>;
 
   // Session store
-  sessionStore: session.SessionStore;
+  sessionStore: session.Store;
 }
 
 export class DatabaseStorage implements IStorage {
-  sessionStore: session.SessionStore;
+  sessionStore: session.Store;
 
   constructor() {
-    this.sessionStore = new PostgresSessionStore({
-      pool,
-      createTableIfMissing: true,
-    });
+    this.sessionStore = new MySQLSessionStore({
+      host: process.env.DB_HOST || "localhost",
+      user: process.env.DB_USER || "root",
+      password: process.env.DB_PASSWORD || "",
+      database: process.env.DB_NAME || "ai-resume",
+      port: parseInt(process.env.DB_PORT || "3306", 10),
+    }) as session.Store;
   }
-
-  // User operations
-  async createUser(user: InsertUser): Promise<User> {
-    const [newUser] = await db.insert(users).values(user).returning();
-    return newUser;
-  }
-
-  async getUser(id: number): Promise<User | undefined> {
-    const user = await db.query.users.findFirst({
-      where: eq(users.id, id),
-    });
-    return user;
-  }
-
-  async getUserByUsername(username: string): Promise<User | undefined> {
-    const user = await db.query.users.findFirst({
-      where: eq(users.username, username),
-    });
-    return user;
-  }
-
-  async getAllUsers(): Promise<User[]> {
-    const allUsers = await db.query.users.findMany({
-      orderBy: [desc(users.createdAt)],
-    });
-    return allUsers;
-  }
-
-  async deleteUser(id: number): Promise<void> {
-    await db.delete(users).where(eq(users.id, id));
-  }
-
-  // Resume operations
-  async createResume(resume: InsertResume & { content: any }): Promise<Resume> {
-    const [newResume] = await db.insert(resumes).values(resume).returning();
-    return newResume;
-  }
-
-  async getResume(id: number): Promise<Resume | undefined> {
-    const resume = await db.query.resumes.findFirst({
-      where: eq(resumes.id, id),
-      with: {
-        user: true,
-        template: true,
-      },
-    });
-    return resume;
-  }
-
-  async getResumesByUser(userId: number): Promise<Resume[]> {
-    const userResumes = await db.query.resumes.findMany({
-      where: eq(resumes.userId, userId),
-      with: {
-        template: true,
-      },
-      orderBy: [desc(resumes.updatedAt)],
-    });
-    return userResumes;
-  }
-
-  async getAllResumes(): Promise<Resume[]> {
-    const allResumes = await db.query.resumes.findMany({
-      with: {
-        user: true,
-        template: true,
-      },
-      orderBy: [desc(resumes.updatedAt)],
-    });
-    return allResumes;
-  }
-
   async updateResume(id: number, resume: Partial<InsertResume & { content: any }>): Promise<Resume | undefined> {
-    const [updatedResume] = await db
-      .update(resumes)
-      .set({ ...resume, updatedAt: new Date() })
-      .where(eq(resumes.id, id))
-      .returning();
-    return updatedResume;
-  }
-
-  async deleteResume(id: number): Promise<void> {
-    await db.delete(resumes).where(eq(resumes.id, id));
-  }
-
-  // Template operations
-  async createTemplate(template: InsertResumeTemplate): Promise<ResumeTemplate> {
-    const [newTemplate] = await db.insert(resumeTemplates).values(template).returning();
-    return newTemplate;
-  }
-
-  async getTemplate(id: number): Promise<ResumeTemplate | undefined> {
-    const template = await db.query.resumeTemplates.findFirst({
-      where: eq(resumeTemplates.id, id),
-    });
-    return template;
-  }
-
-  async getAllTemplates(): Promise<ResumeTemplate[]> {
-    const allTemplates = await db.query.resumeTemplates.findMany();
-    return allTemplates;
+    const [result] = await pool.query("UPDATE resumes SET ? WHERE id = ?", [resume, id]);
+    if ((result as any).affectedRows === 0) {
+      return undefined; // No rows updated
+    }
+    return this.getResume(id); // Return the updated resume
   }
 
   async updateTemplate(id: number, template: Partial<InsertResumeTemplate>): Promise<ResumeTemplate | undefined> {
-    const [updatedTemplate] = await db
-      .update(resumeTemplates)
-      .set(template)
-      .where(eq(resumeTemplates.id, id))
-      .returning();
-    return updatedTemplate;
+    const [result] = await pool.query("UPDATE resumeTemplates SET ? WHERE id = ?", [template, id]);
+    if ((result as any).affectedRows === 0) {
+      return undefined; // No rows updated
+    }
+    return this.getTemplate(id); // Return the updated template
+  }
+  updateApiKey(id: number, apiKey: Partial<InsertApiKey>): Promise<ApiKey | undefined> {
+    throw new Error("Method not implemented.");
+  }
+
+  async createUser(user: InsertUser): Promise<User> {
+    const [result] = await pool.query("INSERT INTO users SET ?", user);
+    const insertedId = (result as any).insertId;
+    return { ...user, id: insertedId };
+  }
+
+  async getUser(id: number): Promise<User | undefined> {
+    const [rows] = await pool.query("SELECT * FROM users WHERE id = ?", [id]);
+    return (rows as User[])[0];
+  }
+
+  async getUserByUsername(username: string): Promise<User | undefined> {
+    const [rows] = await pool.query("SELECT * FROM users WHERE username = ?", [username]);
+    return (rows as User[])[0];
+  }
+
+  async getAllUsers(): Promise<User[]> {
+    const [rows] = await pool.query("SELECT * FROM users ORDER BY createdAt DESC");
+    return rows as User[];
+  }
+
+  async deleteUser(id: number): Promise<void> {
+    await pool.query("DELETE FROM users WHERE id = ?", [id]);
+  }
+
+  async createResume(resume: InsertResume & { content: any }): Promise<Resume> {
+    const [result] = await pool.query("INSERT INTO resumes SET ?", resume);
+    const insertedId = (result as any).insertId;
+    return { ...resume, id: insertedId };
+  }
+
+  async getResume(id: number): Promise<Resume | undefined> {
+    const [rows] = await pool.query("SELECT * FROM resumes WHERE id = ?", [id]);
+    return (rows as Resume[])[0];
+  }
+
+  async getResumesByUser(userId: number): Promise<Resume[]> {
+    const [rows] = await pool.query("SELECT * FROM resumes WHERE userId = ? ORDER BY updatedAt DESC", [userId]);
+    return rows as Resume[];
+  }
+
+  async getAllResumes(): Promise<Resume[]> {
+    const [rows] = await pool.query("SELECT * FROM resumes ORDER BY updatedAt DESC");
+    return rows as Resume[];
+  }
+
+  async deleteResume(id: number): Promise<void> {
+    await pool.query("DELETE FROM resumes WHERE id = ?", [id]);
+  }
+
+  async createTemplate(template: InsertResumeTemplate): Promise<ResumeTemplate> {
+    const [result] = await pool.query("INSERT INTO resumeTemplates SET ?", template);
+    const insertedId = (result as any).insertId;
+    return { ...template, id: insertedId };
+  }
+
+  async getTemplate(id: number): Promise<ResumeTemplate | undefined> {
+    const [rows] = await pool.query("SELECT * FROM resumeTemplates WHERE id = ?", [id]);
+    return (rows as ResumeTemplate[])[0];
+  }
+
+  async getAllTemplates(): Promise<ResumeTemplate[]> {
+    const [rows] = await pool.query("SELECT * FROM resumeTemplates");
+    return rows as ResumeTemplate[];
   }
 
   async deleteTemplate(id: number): Promise<void> {
-    await db.delete(resumeTemplates).where(eq(resumeTemplates.id, id));
+    await pool.query("DELETE FROM resumeTemplates WHERE id = ?", [id]);
   }
 
-  // API Key operations
   async createApiKey(apiKey: InsertApiKey): Promise<ApiKey> {
-    const [newApiKey] = await db.insert(apiKeys).values(apiKey).returning();
-    return newApiKey;
+    const [result] = await pool.query("INSERT INTO apiKeys SET ?", apiKey);
+    const insertedId = (result as any).insertId;
+    return { ...apiKey, id: insertedId };
   }
 
   async getApiKey(id: number): Promise<ApiKey | undefined> {
-    const apiKey = await db.query.apiKeys.findFirst({
-      where: eq(apiKeys.id, id),
-    });
-    return apiKey;
+    const [rows] = await pool.query("SELECT * FROM apiKeys WHERE id = ?", [id]);
+    return (rows as ApiKey[])[0];
   }
 
   async getActiveApiKey(provider: string): Promise<ApiKey | undefined> {
-    const key = await db.query.apiKeys.findFirst({
-      where: and(
-        eq(apiKeys.provider, provider),
-        eq(apiKeys.isActive, true)
-      ),
-    });
-    return key;
+    const [rows] = await pool.query("SELECT * FROM apiKeys WHERE provider = ? AND active = 1", [provider]);
+    return (rows as ApiKey[])[0];
   }
 
   async getAllApiKeys(): Promise<ApiKey[]> {
-    const allApiKeys = await db.query.apiKeys.findMany({
-      orderBy: [desc(apiKeys.updatedAt)],
-    });
-    return allApiKeys;
-  }
-
-  async updateApiKey(id: number, apiKey: Partial<InsertApiKey>): Promise<ApiKey | undefined> {
-    const [updatedApiKey] = await db
-      .update(apiKeys)
-      .set({ ...apiKey, updatedAt: new Date() })
-      .where(eq(apiKeys.id, id))
-      .returning();
-    return updatedApiKey;
+    const [rows] = await pool.query("SELECT * FROM apiKeys");
+    return rows as ApiKey[];
   }
 
   async deleteApiKey(id: number): Promise<void> {
-    await db.delete(apiKeys).where(eq(apiKeys.id, id));
+    await pool.query("DELETE FROM apiKeys WHERE id = ?", [id]);
   }
 }
 

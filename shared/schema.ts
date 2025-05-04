@@ -1,15 +1,15 @@
-import { pgTable, text, serial, integer, boolean, timestamp, jsonb } from "drizzle-orm/pg-core";
 import { createInsertSchema, createSelectSchema } from "drizzle-zod";
 import { z } from "zod";
 import { relations } from "drizzle-orm";
+import { mysqlTable, varchar, int, boolean, timestamp, json } from "drizzle-orm/mysql-core";
 
 // Users Table
-export const users = pgTable("users", {
-  id: serial("id").primaryKey(),
-  username: text("username").notNull().unique(),
-  password: text("password").notNull(),
-  email: text("email").notNull().unique(),
-  name: text("name").notNull(),
+export const users = mysqlTable("users", {
+  id: int("id").autoincrement().primaryKey(),
+  username: varchar("username", { length: 255 }).notNull().unique(),
+  password: varchar("password", { length: 255 }).notNull(),
+  email: varchar("email", { length: 255 }).notNull().unique(),
+  name: varchar("name", { length: 255 }).notNull(),
   isAdmin: boolean("is_admin").default(false).notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
@@ -30,11 +30,11 @@ export const userSelectSchema = createSelectSchema(users);
 export type User = z.infer<typeof userSelectSchema>;
 
 // API Keys
-export const apiKeys = pgTable("api_keys", {
-  id: serial("id").primaryKey(),
-  name: text("name").notNull(),
-  key: text("key").notNull(),
-  provider: text("provider").notNull(),
+export const apiKeys = mysqlTable("api_keys", {
+  id: int("id").autoincrement().primaryKey(),
+  name: varchar("name", { length: 255 }).notNull(),
+  key: varchar("key", { length: 255 }).notNull(),
+  provider: varchar("provider", { length: 255 }).notNull(),
   isActive: boolean("is_active").default(true).notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
@@ -51,12 +51,12 @@ export const apiKeySelectSchema = createSelectSchema(apiKeys);
 export type ApiKey = z.infer<typeof apiKeySelectSchema>;
 
 // Resume Templates
-export const resumeTemplates = pgTable("resume_templates", {
-  id: serial("id").primaryKey(),
-  name: text("name").notNull(),
-  description: text("description").notNull(),
-  thumbnail: text("thumbnail").notNull(),
-  htmlTemplate: text("html_template").notNull(),
+export const resumeTemplates = mysqlTable("resume_templates", {
+  id: int("id").autoincrement().primaryKey(),
+  name: varchar("name", { length: 255 }).notNull(),
+  description: varchar("description", { length: 1000 }).notNull(),
+  thumbnail: varchar("thumbnail", { length: 255 }).notNull(),
+  htmlTemplate: varchar("html_template", { length: 10000 }).notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
@@ -72,12 +72,12 @@ export const resumeTemplateSelectSchema = createSelectSchema(resumeTemplates);
 export type ResumeTemplate = z.infer<typeof resumeTemplateSelectSchema>;
 
 // Resumes Table
-export const resumes = pgTable("resumes", {
-  id: serial("id").primaryKey(),
-  name: text("name").notNull(),
-  userId: integer("user_id").references(() => users.id).notNull(),
-  templateId: integer("template_id").references(() => resumeTemplates.id).notNull(),
-  content: jsonb("content").notNull(),
+export const resumes = mysqlTable("resumes", {
+  id: int("id").autoincrement().primaryKey(),
+  name: varchar("name", { length: 255 }).notNull(),
+  userId: int("user_id").references(() => users.id).notNull(),
+  templateId: int("template_id").references(() => resumeTemplates.id).notNull(),
+  content: json("content").notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });

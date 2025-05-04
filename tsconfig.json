@@ -20,6 +20,7 @@
       "@db/*": ["./db/*"],
       "@/*": ["./client/src/*"],
       "@shared/*": ["./shared/*"]
-    }
+    },
+    "allowSyntheticDefaultImports": true
   }
 }

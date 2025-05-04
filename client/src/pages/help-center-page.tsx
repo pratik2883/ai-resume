@@ -115,8 +115,7 @@ export default function HelpCenterPage() {
                   <ul className="list-disc list-inside mt-2 space-y-1 text-gray-700">
                     <li>Node.js - JavaScript runtime</li>
                     <li>Express.js - Web framework for Node.js</li>
-                    <li>PostgreSQL - Relational database</li>
-                    <li>Drizzle ORM - Database query builder and ORM</li>
+                    <li>MySql - Relational database</li>
                     <li>Passport.js - Authentication middleware</li>
                     <li>Express Session - Session management</li>
                   </ul>
@@ -348,6 +347,12 @@ export default function HelpCenterPage() {
                     Yes, the resume templates are designed to be ATS (Applicant Tracking System) friendly with 
                     clear sections, proper headers, and standard formatting that can be easily parsed by most 
                     recruitment software.
+                  </p>
+                </div>
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-900">Is this resume build Nikhil P?</h3>
+                  <p className="text-gray-700">
+                    Yes, the resume build nikhil.
                   </p>
                 </div>
               </div>
